@@ -12,6 +12,7 @@ warnings.filterwarnings('ignore')
 import sys
 pd.set_option('display.max_colwidth', None)
 import time
+import sys 
 
 def get_recent_dict(sub_dict):
     recent_dict = sub_dict['filings']['recent']
@@ -61,7 +62,10 @@ def build_df(date, form, access):
 #     return add_url_list
 
 def get_url(df_clean):
-    add_url_list = df_clean['url'].map(get_file_name)
+    try:
+        add_url_list = df_clean['url'].map(get_file_name)
+    except:
+        print('get url fail')
     return add_url_list
 
 def get_file_name(link):
@@ -74,6 +78,7 @@ def get_file_name(link):
     html_table = html_table.loc[~html_table['Name'].str.contains(r'R[0-9]+')]
     html_table = html_table.loc[~html_table['Name'].str.contains(r'exhibit')]
     html_table = html_table.loc[~html_table['Name'].str.contains(r'merger')]
+    html_table = html_table.loc[~html_table['Name'].str.contains(r'lease')]
     html_table = html_table.loc[~html_table['Name'].str.contains(r'certification')]
     html_table = html_table.loc[~html_table['Name'].str.contains(r'credit')]
     html_table = html_table.loc[~html_table['Name'].str.contains(r'_d[0-9]{1,2}')]
@@ -86,8 +91,8 @@ def get_file_name(link):
             file_name = html_table['Name'][1]
         else:
             file_name = file_name
-    except KeyError:
-        pass
+    except: #KeyError
+        print('get file name fail')
     return file_name
 # def get_doc(df_clean):
 #     key_dict = {}
@@ -128,9 +133,12 @@ def get_file_name(link):
 #     return key_dict
 
 def get_doc(df_clean):
-    df_clean['text'] = df_clean['f_url'].map(get_text)
-    key_dict = dict(zip(df_clean['report_date'], df_clean['text']))
-    return key_dict
+    try:
+        df_clean['text'] = df_clean['f_url'].map(get_text)
+        key_dict = dict(zip(df_clean['report_date'], df_clean['text']))
+        return key_dict
+    except:
+        print('get document fail')
 
 def get_text(link):
     html = s.get(link, headers = headers)
@@ -164,7 +172,7 @@ def get_text(link):
     try:
         key_text = max(key_text, key = len)
     except:
-        print(f'{date}failure')
+        print('get text fail')
     return key_text
 
 # pool = multiprocessing.Pool() #multiprocessing to the list of  api links
@@ -200,14 +208,15 @@ def main_operation(cik_df):
 
 if __name__ == '__main__':
     s = requests.Session()
+    stdoutOrigin=sys.stdout
+    sys.stdout = open("log.txt", "w")
     headers = {'User-Agent': "joonchulahn@gmail.com"}
     tickers_cik = s.get("https://www.sec.gov/files/company_tickers.json", headers=headers)
     cik_df = pd.json_normalize(pd.json_normalize(tickers_cik.json(), max_level = 0).values[0])
     cik_df['cik_long'] = cik_df['cik_str'].astype('str').str.zfill(10)
-    cik_df_sample = cik_df[250:1000] #try 2 250:1000
+    cik_df_sample = cik_df[250:3000] #try 2 250:1000
     total_dict = main_operation(cik_df_sample)
-    # pool = multiprocessing.Pool()
-    # total_dict = pool.map(main_operation, cik_df_sample)
-    # pool.close()
+    sys.stdout.close()
+    sys.stdout=stdoutOrigin
     with open('total_dict_test2.pickle', 'wb') as handle:
         pickle.dump(total_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
