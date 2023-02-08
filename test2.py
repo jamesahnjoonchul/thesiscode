@@ -211,15 +211,15 @@ def main_operation(cik_df):
 
 if __name__ == '__main__':
     s = requests.Session()
-    # stdoutOrigin=sys.stdout
-    # sys.stdout = open("log.txt", "w")
+    stdoutOrigin=sys.stdout
+    sys.stdout = open("log2.txt", "w")
     headers = {'User-Agent': "joonchulahn@gmail.com"}
     tickers_cik = s.get("https://www.sec.gov/files/company_tickers.json", headers=headers)
     cik_df = pd.json_normalize(pd.json_normalize(tickers_cik.json(), max_level = 0).values[0])
     cik_df['cik_long'] = cik_df['cik_str'].astype('str').str.zfill(10)
     cik_df_sample = cik_df[3000:4000] #try 2 250:3000
     total_dict = main_operation(cik_df_sample)
-    # sys.stdout.close()
-    # sys.stdout=stdoutOrigin
+    sys.stdout.close()
+    sys.stdout=stdoutOrigin
     with open('total_dict_test3.pickle', 'wb') as handle:
         pickle.dump(total_dict, handle, protocol=pickle.HIGHEST_PROTOCOL)
