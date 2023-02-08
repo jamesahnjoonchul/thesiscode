@@ -64,9 +64,10 @@ def build_df(date, form, access):
 def get_url(df_clean):
     try:
         add_url_list = df_clean['url'].map(get_file_name)
+        return add_url_list
     except:
         print('get url fail')
-    return add_url_list
+    
 
 def get_file_name(link):
     test_link = s.get(link, headers=headers)
@@ -91,9 +92,10 @@ def get_file_name(link):
             file_name = html_table['Name'][1]
         else:
             file_name = file_name
+        return file_name
     except: #KeyError
         print('get file name fail')
-    return file_name
+    
 # def get_doc(df_clean):
 #     key_dict = {}
 #     for date, link in zip(df_clean['report_date'], df_clean['f_url']):
@@ -171,9 +173,10 @@ def get_text(link):
         key_text = re.findall(r"[()a-z0-9\s]*it[\s]*em\s{0,9}[237a-z.—\s]*\s{0,9}management['’\s]+s\s{0,9}discussion\s{0,9}and\s{0,9}analysis(.*?)item\s{0,9}[3478]+[a-z]*.\s{0,9}", one)
     try:
         key_text = max(key_text, key = len)
+        return key_text
     except:
         print('get text fail')
-    return key_text
+    
 
 # pool = multiprocessing.Pool() #multiprocessing to the list of  api links
 
